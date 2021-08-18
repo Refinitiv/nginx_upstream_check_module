@@ -1135,6 +1135,7 @@ ngx_http_upstream_check_connect_handler(ngx_event_t *event)
 
     if (rc == NGX_ERROR || rc == NGX_DECLINED) {
         ngx_http_upstream_check_status_update(peer, 0);
+        ngx_http_upstream_check_clean_event(peer);
         return;
     }
 
@@ -4084,5 +4085,16 @@ ngx_http_upstream_check_init_shm_peer(ngx_http_upstream_check_peer_shm_t *psh,
 static ngx_int_t
 ngx_http_upstream_check_init_process(ngx_cycle_t *cycle)
 {
+    ngx_http_upstream_check_main_conf_t *ucmcf;
+
+    if (ngx_process != NGX_PROCESS_WORKER) {
+        return NGX_OK;
+    }
+
+    ucmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_upstream_check_module);
+    if (ucmcf == NULL) {
+        return NGX_OK;
+    }
+
     return ngx_http_upstream_check_add_timers(cycle);
 }
